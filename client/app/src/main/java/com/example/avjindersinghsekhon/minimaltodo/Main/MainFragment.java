@@ -251,7 +251,7 @@ public class MainFragment extends AppDefaultFragment {
                 addMockItem();
             }
         };
-        handler.postDelayed(r, 7000);
+        handler.postDelayed(r, 20000);
     }
 
     public static ArrayList<ToDoItem> getLocallyStoredData(StoreRetrieveData storeRetrieveData) {
