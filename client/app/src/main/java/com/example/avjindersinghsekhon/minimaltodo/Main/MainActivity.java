@@ -38,7 +38,6 @@ public class MainActivity extends AppDefaultActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(false);
         }
-        new DownloadTask().execute("http://www.mocky.io/v2/5ae1f5a42d000010009d7f9d?callback=myfunction");
     }
 
     @SuppressLint("StaticFieldLeak")

@@ -1,12 +1,15 @@
 package com.example.avjindersinghsekhon.minimaltodo.Main;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -26,6 +29,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
@@ -43,12 +47,20 @@ import com.example.avjindersinghsekhon.minimaltodo.Utility.StoreRetrieveData;
 import com.example.avjindersinghsekhon.minimaltodo.Utility.ToDoItem;
 import com.example.avjindersinghsekhon.minimaltodo.Utility.TodoNotificationService;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.content.Context.ALARM_SERVICE;
@@ -86,6 +98,18 @@ public class MainFragment extends AppDefaultFragment {
             "Get my dry cleaning"
     };
 
+
+    public void addMockItem(){
+        try {
+            if (mToDoItemsArrayList.size() == 0) {
+                ToDoItem mm = new ToDoItem("Hey, does anyone have sugar?", false, new Date());
+                mm.setTodoColor(Color.BLUE);
+                addToDataStore(mm);
+            }
+        } catch (Exception e){
+
+        }
+    }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -218,8 +242,16 @@ public class MainFragment extends AppDefaultFragment {
 
         mRecyclerView.setAdapter(adapter);
 //        setUpTransitions();
+        // addMockItem();
 
-
+        Handler handler=new Handler();
+        Runnable r=new Runnable() {
+            public void run() {
+                //what ever you do here will be done after 3 seconds delay.
+                addMockItem();
+            }
+        };
+        handler.postDelayed(r, 7000);
     }
 
     public static ArrayList<ToDoItem> getLocallyStoredData(StoreRetrieveData storeRetrieveData) {
@@ -268,8 +300,6 @@ public class MainFragment extends AppDefaultFragment {
             editor.apply();
             getActivity().recreate();
         }
-
-
     }
 
     @Override
@@ -285,11 +315,9 @@ public class MainFragment extends AppDefaultFragment {
             setAlarms();
 
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean(CHANGE_OCCURED, false);
+            editor.putBoolean(CHANGE_OCCURED, true);
 //            editor.commit();
             editor.apply();
-
-
         }
     }
 
@@ -416,9 +444,9 @@ public class MainFragment extends AppDefaultFragment {
     }
 
     private void addToDataStore(ToDoItem item) {
-        mToDoItemsArrayList.add(item);
-        adapter.notifyItemInserted(mToDoItemsArrayList.size() - 1);
-
+            mToDoItemsArrayList.add(item);
+            adapter.notifyDataSetChanged();
+//            adapter.notifyItemInserted(mToDoItemsArrayList.size() - 1);
     }
 
 
@@ -430,6 +458,92 @@ public class MainFragment extends AppDefaultFragment {
             items.add(item);
         }
 
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private class DownloadTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            //do your request in here so that you don't interrupt the UI thread
+            try {
+//                String[] kk = downloadContent(params[0]).split(".ty");
+
+
+                return "";
+            }  catch (Exception e){
+                return "Message Added (applicizy).";
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            //Here you are done with the task
+            Toast.makeText(getActivity(), result, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String downloadContent(String myurl) throws IOException {
+        InputStream is = null;
+        int length = 1000;
+        String data = "";
+
+        try {
+            URL url = new URL(myurl);
+            System.out.println(url);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(10000 /* milliseconds */);
+            conn.setConnectTimeout(15000 /* milliseconds */);
+            conn.setRequestMethod("GET");
+            conn.setDoInput(true);
+            conn.connect();
+            int response = conn.getResponseCode();
+            System.out.println("The response is: " + response);
+            is = conn.getInputStream();
+
+            // Convert the InputStream into a string
+            String contentAsString = convertInputStreamToString(is, length);
+            System.out.println("*** " + contentAsString+ " ***");
+
+            JSONObject jsonObj = new JSONObject(contentAsString);
+
+            JSONArray c = jsonObj.getJSONArray("messages");
+            for (int i = 0 ; i < c.length(); i++) {
+                JSONObject obj = c.getJSONObject(i);
+                data += obj.getString("data") + ".ty";
+            }
+
+            return data;
+        }
+        catch (Exception ex) {
+            System.out.print("Problem123");
+        }
+        finally {
+            if (is != null) {
+                is.close();
+            }
+        }
+
+        return data;
+    }
+
+    public String convertInputStreamToString(InputStream stream, int length) throws IOException, UnsupportedEncodingException {
+//        Reader reader = null;
+//        reader = new InputStreamReader(stream, "UTF-8");
+//        char[] buffer = new char[length];
+//        reader.read(buffer);
+//          return new String(buffer);
+
+
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        while ((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+
+        return sb.toString();
     }
 
     public class BasicListAdapter extends RecyclerView.Adapter<BasicListAdapter.ViewHolder> implements ItemTouchHelperClass.ItemTouchHelperAdapter {
@@ -579,7 +693,7 @@ public class MainFragment extends AppDefaultFragment {
                     public void onClick(View v) {
                         ToDoItem item = items.get(ViewHolder.this.getAdapterPosition());
                         Intent i = new Intent(getContext(), AddToDoActivity.class);
-                        i.putExtra(TODOITEM, item);
+//                        i.putExtra(TODOITEM, item);
                         startActivityForResult(i, REQUEST_ID_TODO_ITEM);
                     }
                 });
@@ -652,4 +766,8 @@ public class MainFragment extends AppDefaultFragment {
     public static MainFragment newInstance() {
         return new MainFragment();
     }
+
+    private class UnsupportedEncodingException extends Exception {
+    }
 }
+

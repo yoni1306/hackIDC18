@@ -523,6 +523,7 @@ public class AddToDoFragment extends AppDefaultFragment implements DatePickerDia
         }
     }
 
+
     public void makeResult(int result) {
         Intent i = new Intent();
         if (mUserEnteredText.length() > 0) {
