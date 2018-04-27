@@ -224,10 +224,10 @@ public class AddToDoFragment extends AppDefaultFragment implements DatePickerDia
                     mToDoTextBodyEditText.setError(getString(R.string.todo_error));
                 } else if (mUserReminderDate != null && mUserReminderDate.before(new Date())) {
                     app.send(this, "Action", "Date in the Past");
-                    makeResult(RESULT_CANCELED);
+//                    makeResult(RESULT_CANCELED);
                 } else {
                     app.send(this, "Action", "Make Todo");
-                    makeResult(RESULT_OK);
+//                    makeResult(RESULT_OK);
                     getActivity().finish();
                 }
                 hideKeyboard(mToDoTextBodyEditText);
